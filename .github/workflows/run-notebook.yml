@@ -1,80 +1,50 @@
-name: run-notebook
+name: Export Pluto Notebook
 
 on:
   push:
-    branches: [ main, master ]
-    paths:
-      - "notebooks/**"
-      - "binder/**"
-      - ".github/workflows/run-notebook.yml"
-  workflow_dispatch: {}
-  # optional scheduled runs (every day 06:00 UTC)
-  # schedule:
-  #   - cron: "0 6 * * *"
-
-permissions:
-  contents: read
-  pages: write          # only needed if you enable the Pages step below
-  id-token: write       # only needed if you enable the Pages step below
+    branches:
+      - master
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Julia
         uses: julia-actions/setup-julia@v2
         with:
-          version: '1.11'
+          version: 1.11
 
       - name: Cache Julia artifacts
-        uses: julia-actions/cache@v2
+        uses: actions/cache@v3
         with:
-          cache-registries: "true"
-
-      - name: Instantiate env (your binder/Project.toml)
-        run: julia --project=binder -e 'using Pkg; Pkg.instantiate()'
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-julia-artifacts-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-julia-artifacts-
 
       - name: Add exporter (PlutoSliderServer) just for CI
-        run: julia --project=binder -e 'using Pkg; Pkg.add("PlutoSliderServer"); Pkg.precompile()'
+        run: julia -e 'using Pkg; Pkg.add("PlutoSliderServer")'
 
-      # === OPTION A: run the notebook headlessly and export HTML + assets ===
+      - name: Make postBuild executable
+        run: chmod +x binder/postBuild
+
       - name: Export notebook (HTML, plots, data) to ./out
         run: |
           julia --project=binder -e '
             using PlutoSliderServer
             PlutoSliderServer.export_notebook(
               "notebooks/index.jl";
-              out_path = "out",                  # where HTML + assets will go
+              out_path = "out",
               clear_old_artifacts = true,
               hot_reload = false
             )'
 
       - name: Upload results as a build artifact (downloadable zip)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: results
-          path: out/**
-
-  # === OPTION B: publish the exported HTML to GitHub Pages (optional) ===
-  deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: results
+          name: pluto-export
           path: out
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: out
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4

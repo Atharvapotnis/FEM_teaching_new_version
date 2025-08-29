@@ -1,3 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -eux
-julia --project=binder -e 'using Pkg; Pkg.instantiate(); using Pluto'
+
+# instantiate normal dependencies
+julia --project=binder -e 'using Pkg; Pkg.instantiate()'
+
+# install PlutoSliderServer from GitHub
+julia --project=binder binder/PostBuild.jl
+
+# check PlutoSliderServer works
+julia --project=binder -e 'using PlutoSliderServer'
