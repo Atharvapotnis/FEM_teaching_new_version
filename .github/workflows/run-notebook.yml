@@ -38,10 +38,11 @@ jobs:
             using PlutoSliderServer
             PlutoSliderServer.export_notebook(
               "notebooks/index.jl";
-              out_path = "out",
-              clear_old_artifacts = true,
-              hot_reload = false
+              Export_output_dir = "out",
+              Export_standalone = true,
+              Export_create_index = true
             )'
+
 
       - name: Upload results as a build artifact (downloadable zip)
         uses: actions/upload-artifact@v4
