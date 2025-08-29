@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-set -eux
-
-# Make sure Pluto is available and precompiled
-julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate(); using Pluto'
