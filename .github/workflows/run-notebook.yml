@@ -32,16 +32,13 @@ jobs:
       - name: Make postBuild executable
         run: chmod +x binder/postBuild
 
-      - name: Export notebook (HTML, plots, data) to ./out
+      - name: Export notebook
         run: |
           julia --project=binder -e '
             using PlutoSliderServer
-            PlutoSliderServer.export_notebook(
-              "notebooks/index.jl";
-              Export_output_dir = "out",
-              Export_standalone = true,
-              Export_create_index = true
-            )'
+            PlutoSliderServer.export_notebook("notebooks/index.jl")'
+
+
 
 
       - name: Upload results as a build artifact (downloadable zip)
