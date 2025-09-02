@@ -38,11 +38,32 @@ jobs:
             using PlutoSliderServer
             PlutoSliderServer.export_notebook("notebooks/index.jl")'
 
-
-
-
       - name: Upload results as a build artifact (downloadable zip)
         uses: actions/upload-artifact@v4
         with:
           name: pluto-export
+          path: notebooks/index.jl_output/**
+
+  deploy:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pluto-export
           path: out
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
