@@ -43,6 +43,7 @@ jobs:
         with:
           name: pluto-export
           path: notebooks/index.jl_output/**
+          if-no-files-found: error   # fail here if nothing uploaded
 
   deploy:
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
