@@ -36,13 +36,18 @@ jobs:
         run: |
           julia --project=binder -e '
             using PlutoSliderServer
-            PlutoSliderServer.export_notebook("notebooks/index.jl")'
+            PlutoSliderServer.export_notebook(
+              "notebooks/index.jl";
+              Export_output_dir="out"
+            )'
+
 
       - name: Upload results as a build artifact (downloadable zip)
         uses: actions/upload-artifact@v4
         with:
           name: pluto-export
-          path: index.jl_output/**
+          path: out/**
+
 
 
   deploy:
@@ -65,6 +70,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: out
+
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
